@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { db } from '../firebase'
-import { doc, updateDoc } from 'firebase/firestore'
+import { ref, update } from 'firebase/database'
 
 /**
  * StickyNote Component
@@ -48,8 +48,9 @@ function StickyNote({ appreciation, onDelete }) {
   const bgColor = pastelColors[getColorIndex(appreciation.id)]
 
   // Format date
-  const formatDate = (dateString) => {
-    const date = new Date(dateString)
+  const formatDate = (timestamp) => {
+    // Handle both timestamp numbers and Date objects
+    const date = typeof timestamp === 'number' ? new Date(timestamp) : new Date()
     return date.toLocaleDateString('en-US', {
       month: 'short',
       day: 'numeric',
@@ -67,9 +68,9 @@ function StickyNote({ appreciation, onDelete }) {
     setIsSubmitting(true)
 
     try {
-      // Update Firestore document
-      const docRef = doc(db, 'appreciations', appreciation.id)
-      await updateDoc(docRef, {
+      // Update Realtime Database item
+      const appreciationRef = ref(db, `appreciations/${appreciation.id}`)
+      await update(appreciationRef, {
         response: responseText.trim(),
       })
 

@@ -1,8 +1,8 @@
 import { initializeApp } from 'firebase/app'
-import { getFirestore } from 'firebase/firestore'
+import { getDatabase } from 'firebase/database'
 
 /**
- * FIREBASE SETUP INSTRUCTIONS:
+ * FIREBASE REALTIME DATABASE SETUP INSTRUCTIONS:
  *
  * 1. Go to https://firebase.google.com and sign in with your Google account
  * 2. Click "Go to console" (top right)
@@ -14,27 +14,23 @@ import { getFirestore } from 'firebase/firestore'
  * 7. Register your app with a nickname (e.g., "Appreciation Board Web")
  * 8. Copy the firebaseConfig object shown and replace the config below
  *
- * 9. Set up Firestore Database:
- *    - In Firebase Console, go to "Firestore Database" in the left menu
- *    - Click "Create database"
- *    - Choose "Start in test mode" (for development) - WARNING: This allows public read/write
- *    - For production, you'll want to set up security rules (see below)
+ * 9. Set up Realtime Database:
+ *    - In Firebase Console, go to "Realtime Database" in the left menu
+ *    - Click "Create Database"
  *    - Choose a location close to your users
+ *    - Start in "test mode" (for development) - WARNING: This allows public read/write
  *    - Click "Enable"
  *
- * 10. The "appreciations" collection will be created automatically when you add the first document
+ * 10. The "appreciations" node will be created automatically when you add the first item
  *
  * SECURITY RULES (Optional - for production):
- * Go to Firestore Database > Rules and use these rules for public access:
+ * Go to Realtime Database > Rules and use these rules for public access:
  *
- * rules_version = '2';
- * service cloud.firestore {
- *   match /databases/{database}/documents {
- *     match /appreciations/{document} {
- *       allow read: if true;
- *       allow create: if true;
- *       allow update: if true;
- *       allow delete: if true;
+ * {
+ *   "rules": {
+ *     "appreciations": {
+ *       ".read": true,
+ *       ".write": true
  *     }
  *   }
  * }
@@ -53,5 +49,5 @@ const firebaseConfig = {
 // Initialize Firebase
 const app = initializeApp(firebaseConfig)
 
-// Initialize Firestore
-export const db = getFirestore(app)
+// Initialize Realtime Database
+export const db = getDatabase(app)

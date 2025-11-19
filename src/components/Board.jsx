@@ -1,15 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { db } from '../firebase'
 import {
-  collection,
-  addDoc,
-  query,
-  orderBy,
-  onSnapshot,
-  deleteDoc,
-  doc,
+  ref,
+  push,
+  set,
+  onValue,
+  remove,
   serverTimestamp,
-} from 'firebase/firestore'
+} from 'firebase/database'
 import StickyNote from './StickyNote'
 
 /**
@@ -19,7 +17,7 @@ import StickyNote from './StickyNote'
  * - Allows users to submit new appreciations
  * - Displays all appreciations in a sticky note grid
  * - Filters by role (Student/Parent/Admin/All)
- * - Real-time updates when new appreciations are added (using Firestore onSnapshot)
+ * - Real-time updates when new appreciations are added (using Realtime Database onValue)
  * - Allows adding teacher responses to existing notes
  */
 function Board() {
@@ -42,7 +40,7 @@ function Board() {
   const textareaRef = useRef(null)
 
   /**
-   * Submit a new appreciation to Firebase Firestore
+   * Submit a new appreciation to Firebase Realtime Database
    */
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -62,8 +60,11 @@ function Board() {
     }, 10000)
 
     try {
-      // Add new document to Firestore 'appreciations' collection
-      await addDoc(collection(db, 'appreciations'), {
+      // Add new item to Realtime Database 'appreciations' node
+      const appreciationsRef = ref(db, 'appreciations')
+      const newAppreciationRef = push(appreciationsRef)
+
+      await set(newAppreciationRef, {
         role,
         message: message.trim(),
         response: null,
@@ -102,8 +103,9 @@ function Board() {
    */
   const handleDelete = async (id) => {
     try {
-      // Delete document from Firestore
-      await deleteDoc(doc(db, 'appreciations', id))
+      // Delete item from Realtime Database
+      const appreciationRef = ref(db, `appreciations/${id}`)
+      await remove(appreciationRef)
       showToastNotification('Appreciation deleted')
     } catch (error) {
       console.error('Error deleting appreciation:', error)
@@ -121,28 +123,37 @@ function Board() {
   }
 
   /**
-   * Set up real-time listener for Firestore
-   * Automatically updates when documents are added, modified, or deleted
+   * Set up real-time listener for Realtime Database
+   * Automatically updates when data is added, modified, or deleted
    */
   useEffect(() => {
-    // Create query to fetch appreciations ordered by creation time (newest first)
-    const q = query(
-      collection(db, 'appreciations'),
-      orderBy('createdAt', 'desc')
-    )
+    // Reference to appreciations node
+    const appreciationsRef = ref(db, 'appreciations')
 
-    // Set up real-time listener with onSnapshot
-    const unsubscribe = onSnapshot(
-      q,
+    // Set up real-time listener with onValue
+    const unsubscribe = onValue(
+      appreciationsRef,
       (snapshot) => {
-        const appreciationsData = snapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-          // Convert Firestore Timestamp to Date for display
-          createdAt: doc.data().createdAt?.toDate?.() || new Date(),
-        }))
+        const data = snapshot.val()
 
-        setAppreciations(appreciationsData)
+        if (data) {
+          // Convert object to array and add IDs
+          const appreciationsArray = Object.keys(data).map((key) => ({
+            id: key,
+            ...data[key],
+            // Convert timestamp to Date for display
+            createdAt: data[key].createdAt || new Date().getTime(),
+          }))
+
+          // Sort by creation time (newest first)
+          appreciationsArray.sort((a, b) => b.createdAt - a.createdAt)
+
+          setAppreciations(appreciationsArray)
+        } else {
+          // No data exists yet
+          setAppreciations([])
+        }
+
         setLoading(false)
       },
       (error) => {
