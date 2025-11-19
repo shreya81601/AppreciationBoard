@@ -40,14 +40,14 @@ import { getFirestore } from 'firebase/firestore'
  * }
  */
 
-// Replace this with your actual Firebase config from the Firebase Console
+// Your web app's Firebase configuration
 const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_PROJECT_ID.appspot.com",
-  messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-  appId: "YOUR_APP_ID"
+  apiKey: "AIzaSyBqzbWoDyM6DH5dfGcV6n42NgTO6XipMc4",
+  authDomain: "appreciation-board.firebaseapp.com",
+  projectId: "appreciation-board",
+  storageBucket: "appreciation-board.firebasestorage.app",
+  messagingSenderId: "292163398326",
+  appId: "1:292163398326:web:2ba204ccf6bdbd11631417"
 }
 
 // Initialize Firebase
